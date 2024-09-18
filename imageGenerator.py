@@ -1,13 +1,28 @@
-# importing dependecies
+"""
+Alfonso Garcia
+CSCI 3725: Computational Creativity
+M3: Markov Distinction
+17 September 2024
+
+This file generates an image in the Mintedian symbolic language (my personal art style's name). 
+
+"""
+
+# Importing dependecies
 
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as grids
-import csv
-
 from PIL import Image 
 
-matrix_values = {"eye": {"eye": None, "rocket": None, "watcher": None, "crown": None, "heart": None, "head": None, "tv": None, "flame": None, "mushroom": None, "hand": None, "cell": None, "creator": None},
+# Uncomment if deciding to use csv as an input
+#import csv
+
+
+
+# Initial transition matrix of Mintedian symbols
+
+MATRIX_VALUES = {"eye": {"eye": None, "rocket": None, "watcher": None, "crown": None, "heart": None, "head": None, "tv": None, "flame": None, "mushroom": None, "hand": None, "cell": None, "creator": None},
 "rocket": {"eye": None, "rocket": None, "watcher": None, "crown": None, "heart": None, "head": None, "tv": None, "flame": None, "mushroom": None, "hand": None, "cell": None, "creator": None},
 "watcher": {"eye": None, "rocket": None, "watcher": None, "crown": None, "heart": None, "head": None, "tv": None, "flame": None, "mushroom": None, "hand": None, "cell": None, "creator": None},
 "crown": {"eye": None, "rocket": None, "watcher": None, "crown": None, "heart": None, "head": None, "tv": None, "flame": None, "mushroom": None, "hand": None, "cell": None, "creator": None},
@@ -23,67 +38,84 @@ matrix_values = {"eye": {"eye": None, "rocket": None, "watcher": None, "crown": 
 
 class imageGenerator: 
 
-    def __init__(self, transition_matrix=matrix_values):
+    def __init__(self, transition_matrix=MATRIX_VALUES):
             self.transition_matrix = transition_matrix
             self.symbols = list(transition_matrix.keys())
 
-    # def rank_from_input(self):
-    #     """
-    #     Takes in user input to assign a ranking based on the order they like 
-    #     each symbol from most to least 
-    #     """
-    #     user_ranking = {}
-    #     ranking = 1
 
-    #     file_to_read = input()
+    def rank_from_input(self):
+        """
+        Takes in user input of a file name with user's preferences listed in the form "rank_number, symbol_name.
+        For each line in the file, strips and splits to organize into a tuple in the format: (rank_number, symbol_name)
+        Using this tuple, stores symbol_name as a key ina dictionary user_ranking with rank_number as its value. 
         
-    #     with open(file_to_read, 'r') as file:
-    #         for line in file:
+        Returns:
+            user_ranking: dictionary with symbols mapped to their rankings
+        """
+        user_ranking = {}
+        ranking = 1
 
-    #             line = line.strip()
+        file_to_read = input()
+        
+        with open(file_to_read, 'r') as file:
+            for line in file:
 
-    #             rank_tuple = tuple(line.split(', '))
+                line = line.strip()
 
-    #             if (rank_tuple[1] in self.symbols):
-    #                 user_ranking[rank_tuple[1]] = rank_tuple[0]
-    #             ranking += 1
+                rank_tuple = tuple(line.split(', '))
 
-    def rank_from_csv(self, file_name):
+                if (rank_tuple[1] in self.symbols):
+                    user_ranking[rank_tuple[1]] = rank_tuple[0]
+                ranking += 1
+        return user_ranking
 
-        symbol_keys = []
-        symbol_vals = []
 
-        symbol_preferences = {}
+ 
+    # def rank_from_csv(self, file_name):
+    #     """
+    #     Takes in a csv file name and reads it to generate the user_ranking dictionary 
 
-        with open(file_name, 'r') as file:
+    #     Args:
+    #         file_name: file of csv to read
+        
+    #     Returns:
+    #         user_ranking: dictionary with symbols mapped to their rankings
+    #     """
 
-            csvreader = csv.reader(file)
+    #     symbol_keys = []
+    #     symbol_vals = []
 
-            read_first = 0
+    #     user_ranking = {}
 
-            for row in csvreader:
-                if read_first == 1:
-                    symbol_vals = row
-                else:
-                    symbol_keys =row
-                    read_first += 1
+    #     with open(file_name, 'r') as file:
+
+    #         csvreader = csv.reader(file)
+
+    #         read_first = 0
+
+    #         for row in csvreader:
+    #             if read_first == 1:
+    #                 symbol_vals = row
+    #             else:
+    #                 symbol_keys =row
+    #                 read_first += 1
             
-            file.close()
+    #         file.close()
 
-        symbol_keys.pop(0)
-        symbol_vals.pop(0)
+    #     symbol_keys.pop(0)
+    #     symbol_vals.pop(0)
 
-        for key, val in zip(symbol_keys, symbol_vals):
-            symbol_preferences[key.lower()] = val
+    #     for key, val in zip(symbol_keys, symbol_vals):
+    #         user_ranking[key.lower()] = val
 
-        return symbol_preferences
-
+    #     return user_ranking
 
     def get_next_symbol(self, current_symbol):
         """
         Decides which symbol to pick next
 
-        Args: current_symbol (str) - current symbol plotted
+        Args: 
+            current_symbol - current symbol plotted
         """
         return np.random.choice(
             self.symbols,
@@ -91,7 +123,16 @@ class imageGenerator:
         )
     
     def create_canvas(self, current_symbol="eye", sequence_length = 40):
+        """
+        Creating a list of symbols by iterating through the transition matrix
 
+        Args: 
+            current_symbol: what symbol to start with, set to "eye" by default
+            sequence_length: how many symbols to plot, set to 40 by default
+
+        Returns:
+            canvas: a list with all symbols for Mintedian piece
+        """
         canvas = []
 
         while len(canvas) < sequence_length:
@@ -101,70 +142,106 @@ class imageGenerator:
         return canvas
     
     def get_symbol_image(self, current_symbol):
+        """
+        Helper function for getting the file path of a symbol
+        
+        Args:
+            current_symbol: the symbol whose file path we are looking for
+        
+        Returns:
+            image_path: file path of symbol
+        """
 
         image_path = ""
         match current_symbol:
 
             case "cell":
-                image_path = "symbol_images/cell.png"
+                image_path = "assets/cell.png"
             case "creator":
-                image_path = "symbol_images/creator.png"
+                image_path = "assets/creator.png"
             case "crown":
-                image_path = "symbol_images/crown.png"
+                image_path = "assets/crown.png"
             case "eye":
-                image_path = "symbol_images/eye.png"
+                image_path = "assets/eye.png"
             case "flame":
-                image_path = "symbol_images/flame.png"
+                image_path = "assets/flame.png"
             case "hand":
-                image_path = "symbol_images/hand.png"
+                image_path = "assets/hand.png"
             case "head":
-                image_path = "symbol_images/head.png"
+                image_path = "assets/head.png"
             case "heart":
-                image_path = "symbol_images/heart.png"
+                image_path = "assets/heart.png"
             case "mushroom":
-                image_path = "symbol_images/mushroom.png"
+                image_path = "assets/mushroom.png"
             case "rocket":
-                image_path = "symbol_images/rocket.png"
+                image_path = "assets/rocket.png"
             case "tv":
-                image_path = "symbol_images/tv.png"
+                image_path = "assets/tv.png"
             case "watcher":
-                image_path = "symbol_images/watcher.png"
+                image_path = "assets/watcher.png"
             case default:
                 image_path = ""
         
         return image_path
     
     def get_path_list(self, canvas):
+        """
+        Stores the file paths of each image within the canvas into a list
+
+        Args:
+            canvas: the list with the symbols to plot
+        
+        Returns:
+            file_paths: list of each symbol's filepath
+        """
         file_paths = []
         for symbol in canvas:
             file_paths.append(self.get_symbol_image(symbol))
         return file_paths
     
     def random_transformation(self, image):
+        """
+        Applies a random transformation of a rotation, a vertical flip, or a horizontal flip to an image
 
+        Args: 
+            image - an image object 
+
+        Returns:
+            image - the transformed image object
+
+        """
+        # Possible transformations as a list 
         transformations = ["rotate", "vertical_flip", "horizontal_flip"]
+
+        # Choosing a random transformation
         transformation = np.random.choice(transformations)
 
         match transformation:
             case "rotate":
+                # In the case of rotation, image can be rotated by any amount from 0 to 360 degrees
                 image = image.rotate(np.random.randint(0, 360))
             case "vertical_flip":
                 image = image.transpose(Image.FLIP_TOP_BOTTOM)
             case "horizontal_flip":
                 image = image.transpose(Image.FLIP_LEFT_RIGHT)
-
         return image
 
     def add_image_to_plot(self, canvas):
         """
-        Creates a figure with each move as a subplot by reading in 
-        each move's image file_path and plotting it
+        Creates a figure with each move as a subplot by reading in each move's image file_path and plotting it
+
+        Args: 
+            canvas - a list of all symbols to plot
         """
+
         file_paths = self.get_path_list(canvas)
+
+        # Specifying the dimensions of the grid to showcase all 40 symbols
 
         nrow = 5
         ncol = 8
 
+        # Creating the figure
         fig = plt.figure(figsize=(15,8))
 
         # Got this code from https://stackoverflow.com/questions/41071947/how-to-remove-the-space-between-subplots
@@ -177,62 +254,86 @@ class imageGenerator:
 
         for idx, file_path in enumerate(file_paths):
 
-            # Calculating row and col index based on current index in file_paths
+            # Calculating row and col index based on current index in file_paths 
             row = idx // ncol
             col = idx % ncol
-
+            
             image = Image.open(file_path)
+
+            # Applying a random transformation to an image
             image = self.random_transformation(image)
             ax = plt.subplot(gs[row,col])
 
-            # Applying a random transformation to an image before sho
-            # image = self.random_transformation(image)
             ax.imshow(image)
-            ax.set_xticklabels([])
-            ax.set_yticklabels([])
+            # Hiding axis information
             ax.axis('off')
 
+        # Saving Mintedian image to a examples folder: code found https://stackoverflow.com/questions/11373610/save-matplotlib-file-to-a-directory
+        fig.savefig('examples/example{}.png'.format(5))
         plt.show()
         
-    def is_high_low_rank(self, rankings, key_1, key_2):
+    def is_high_low_rank(self, rankings, source_symbol, destination_symbol):
         """
-        Boolean function returning whether rank of one symbol is higher than rank of 
-        other symbol
+        Boolean function returning whether rank of the source symbol (given that this symbol has already occurred) 
+        is greater than the rank of the destination symbol (symbol we want to transition to). 
+
+        Args:
+            rankings: dictionary that stores symbol_name as string mapped to its ranking 
+
+        Returns:
+            Boolean determining whether source symbol is higher ranked than destination symbol
+
         """
-        return True if rankings[key_1] >= rankings[key_2] else False 
+        return True if rankings[source_symbol] >= rankings[destination_symbol] else False 
     
     def determine_weight(self, source_rank, destination_rank):
         """
-        Function to handle assigining weights of probabilities by order of 
-        preference.
+        Given a destination and source symbols' ranks, calculate a weight that is proportional to the magnitude of the rank difference.
+
+        If there is a greater difference between the ranks of the symbols (i.e. one is ranked higher on the scale of preference as #2 and the 
+        other is ranked lower as #10), weight that is calculated is smaller than if rank difference were to be less (between similarly ranked symbols)
+        
+        
+        given that a desirable, higher ranked symbol has occurred, 
+        we want to minimize the chance of transitioning to a lower ranked symbol.
+
+        Args:
+            source_rank: the rank of a source symbol, a symbol that has already been plotted
+            destination_rank: the rank of a destination symbol, the potential symbol that will be plotted 
+        
+        Returns:
+            A weight proportional to the rank difference 
         """
 
         rank_diff = abs(int(destination_rank)- int(source_rank))
 
+        # 1 in numerator to generate a weight that when summed over an entire row within transition matrix, weight adds up to 1.
+        # Formula found from https://www.indeed.com/career-advice/career-development/normalization-formula
         return 1/(rank_diff + 1)
 
     def update_transition_matrix(self, rankings):
 
         """
-        Function that updates the probabilities stored in the transition matrix
-        based on user choices
+        Function that updates the probabilities stored in the transition matrix based on user choices. Uses normalization formula
+        from https://www.indeed.com/career-advice/career-development/normalization-formula to correctly generate weights (probability
+        of transitioning between symbols) of a source symbol (symbol that has just been plotted) to a destiantion symbol (a potential 
+        symbol to plot)
 
-        Generate probabilities using a random number.
-        Iterate through each row
-        Calculate whether the row sums to 1 yet
-        If not, compare the symbol of the current row's ranking to the 
-        symbol of the current column. Then based on this, assign a greater value to
-        the higher ranked symbol? then continue to iterate through. 
+        Args:
+            rankings: dictionary that stores symbol names mapped to their rankings
         """
 
-        # Stores a tuple: (destination_symbol, source_symbol) mapped to the unnormalized weight
+        # Creating dictionary for unnormalized weights:
+        # Stores as a tuple: (destination_symbol, source_symbol) mapped to the pair's unnormalized probability weight 
          
         unnormalized_weights = {}
 
-        # Storing the total unweighted sum of each row to later use for normalization
+        # Storing the total unnormalized probability weight sum of each row to later use for normalization process
 
         total_sums = []
 
+
+        # Iterating through transition matrix to calculate unnormalized weights 
         for destination_symbol in self.transition_matrix:
             
             # Getting the sum of raw, unnormalized weights per row
@@ -243,8 +344,10 @@ class imageGenerator:
                 
                 # Getting unnormalized weight based on user preference 
 
+                # What should the probability of transitioning from the previous symbol into the next symbol be?
                 unnormal_weight = self.determine_weight(rankings[destination_symbol], rankings[source_symbol])
 
+                # Storing unnormalized weight
                 unnormalized_weights[(destination_symbol, source_symbol)] = unnormal_weight
 
                 # Getting total sum to use for normalization later 
@@ -253,7 +356,9 @@ class imageGenerator:
             # Storing sums of each row to a list 
             total_sums.append(sum_of_raw_weights)
 
-        # Now assigning normalized weights based on user preferences, based on unnormalized weights
+        # Now assigning normalized weights based on user preferences, based on unnormalized weights.
+        # Step necessary because each row may not sum exactly to 1, so by dividing by the total sum of each row, 
+        # a proper probability weight is generated 
              
         for index, destination_rank in enumerate(self.transition_matrix):
             for source_rank in self.transition_matrix:
@@ -261,28 +366,46 @@ class imageGenerator:
                 # Updating probabilities stored in transition matrix 
                 self.transition_matrix[destination_rank][source_rank] = \
                (unnormalized_weights[(destination_rank, source_rank)] / total_sums[index])
+                
         
 def main():
 
-    symbol_piece = imageGenerator()
+    # Creating a new ImageGenerator object
+    symbol_piece = ImageGenerator()
 
-    # eye, rocket, watcher, crown , heart, head, tv, flame, mushroom, hand, cell, creator
+    # Asking user for input and explaining the symbols within the generator
     print("Hello, welcome to the Mintedian Image Generator" + 
             "\n" + 
             "The following Mintedian symbols are possible to conjure:\n" + 
             "- eye\n" + "-rocket\n" + "-watcher\n" + "-crown\n" + "-heart\n" + "-head\n"
             + "-tv\n" + "-flame\n" + "-mushroom\n" + "-hand\n" + "-cell\n" + "-creator\n"
-            "Please rank these from your most favorite to your least favorite in the following form: 1, symbol_x"
+            "Please rank these from your most favorite to your least favorite and type in a file in the form of rank_number, symbol\n" + 
+            "When you have the file, type it in and your Mintedian image will be generated!"
     )
 
-    #rankings = symbol_piece.rank_from_input()
-    rankings = symbol_piece.rank_from_csv("csvs/response_1.csv")
+    # Storing the user's input into a dictionary mapping symbols to their respective rank
+    rankings = symbol_piece.rank_from_input()
 
+    # Uncomment this code if you want to read input from a csv file
+    # rankings = symbol_piece.rank_from_csv("csvs/response_1.csv")
+
+
+    # Based on user rankings, updating the probabilities stored within the transition matrix
     symbol_piece.update_transition_matrix(rankings)
 
+    # Creating the list of all symbols to plot
     canvas = symbol_piece.create_canvas()
 
+    # Plotting the images and generating the image!
     symbol_piece.add_image_to_plot(canvas)
+
+def __str__(self):
+        """Returns a string representation of this ImageGenerator."""
+        return self.transition_matrix
+
+def __repr__(self):
+        """Lets us make an object of the same value."""
+        return "ImageGenerator('{0}', {1})".format(self.transition_matrix, self.symbols)
 
 if __name__ == "__main__": # ask again about this
     main() 
