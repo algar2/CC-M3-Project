@@ -1,0 +1,12 @@
+1, crown
+2, creator
+3, cell
+4, eye
+5, flame
+6, hand
+7, head
+8, heart
+9, watcher
+10, rocket
+11, tv
+12, mushroom
